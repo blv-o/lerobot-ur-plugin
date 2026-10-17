@@ -137,12 +137,12 @@ def test_lost_connection_raises_and_is_logged_with_t_ns(caplog: pytest.LogCaptur
 def test_every_read_error_tells_the_operator_what_to_do(pkts: Any) -> None:
     rig = connected(pkts)
     rig.tick(1.0)
-    with pytest.raises(LeaderReadError, match="comprueba el programa de freedrive y el cable del leader$"):
+    with pytest.raises(LeaderReadError, match="comprueba que el leader esté encendido y su cable de red$"):
         rig.leader.read_joints()
 
 
 def test_a_failed_connect_tells_what_to_do_and_is_logged_with_t_ns(caplog: pytest.LogCaptureFixture) -> None:
-    with pytest.raises(LeaderReadError, match="comprueba el programa de freedrive y el cable del leader$"):
+    with pytest.raises(LeaderReadError, match="comprueba que el leader esté encendido y su cable de red$"):
         Rig(fail=("connect",)).leader.connect()
     assert any("t_ns=" in r.getMessage() for r in caplog.records)
 
@@ -223,7 +223,7 @@ def test_check_start_reads_the_leader_pose() -> None:
 
 def test_start_prompt_tells_what_to_prepare_on_the_pendant() -> None:
     prompt = UrLeaderCore(LEADER_CONFIG).start_prompt()
-    assert "freedrive" in prompt and "127.0.0.3" in prompt
+    assert "freedrive" in prompt and "botón del TP" in prompt and "127.0.0.3" in prompt
     assert "[0, -90, 90, -90, -90, 0]" in prompt and "± 2" in prompt
     assert "yes/no" in prompt
     assert prompt.endswith("\n")  # con `| Tee-Object`, sin él la pregunta no se ve
