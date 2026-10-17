@@ -1,6 +1,6 @@
 """Leader UR: se lee por RTDE y nunca se le escribe nada.
 
-El operador lo mueve a mano en freedrive desde un programa del TP. Solo hay una receta de
+El operador lo mueve a mano en freedrive (botón del TP o programa). Solo hay una receta de
 salida: ninguna de entrada, ningún script por 30002 y ningún comando de Dashboard, para no
 interferir con lo que corre en el robot. Como el follower, todo corre en el hilo que llama, sin
 hilos propios: tras `connect()` nunca se espera al robot (`receive_buffered` no bloquea).

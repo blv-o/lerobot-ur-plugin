@@ -39,11 +39,12 @@ Modo del follower (selector de la barra superior):
   - Se pierde con `docker compose stop`/`up` o al recrear el contenedor: volver a ponerlo.
 
 Leader real:
-- Modo **Local**.
+- Encenderlo y soltar frenos en el TP (**ON** → **START**). Modo **Local**.
 - Llevarlo a la posición inicial desde **Move**.
 - Freedrive, a elegir:
-  - Botón de freedrive del TP.
+  - Botón de freedrive del TP, mantenido pulsado mientras se mueve el brazo.
   - Programa `Freedrive.urp`: nodo Script que carga `plugins/tp/leader_freedrive.script`. El `.urp` no se llama como el script. **Stop** sale de freedrive y el leader queda quieto.
+    Copiar el script al robot con un USB (o por red a la carpeta de programas).
 - Payload y TCP: se ponen desde el TP del leader.
 - El PC no envía ningún programa al leader.
 
@@ -59,8 +60,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
 ```
 
 - Con los URSim no hay que cambiar nada (`profile: sim`).
-- Robots reales: `profile` (`real`, o `{leader: real, follower: sim}`) y sus IP `real:`.
-- Perfil mixto `profile: {leader: real, follower: sim}`: leader real y follower en URSim.
+- Robots reales: `profile` (`real`, o `{leader: real, follower: sim}` para leader real y follower en URSim) y sus IP `real:`.
 - Velocidad máxima e interpolación se ajustan solo en el programa del TP (`plugins/tp/follower_control.script`).
 
 ## 4. Lanzar
