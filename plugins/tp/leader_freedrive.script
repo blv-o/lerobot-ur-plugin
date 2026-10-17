@@ -1,0 +1,15 @@
+# ------------------------------------------------------------------
+#  leader_freedrive.script  (URScript, programa del TP)
+#
+#  Opcional: pone el UR leader en freedrive al dar Play. Vale igual
+#  el boton de freedrive del TP. Se carga en el TP del leader como
+#  nodo Script de un programa (p. ej. Freedrive.urp; el .urp no puede
+#  llamarse como el script). El PC nunca lo envia: lo carga el operador.
+#
+#  Stop en el TP sale de freedrive y el leader queda quieto.
+# ------------------------------------------------------------------
+
+freedrive_mode()
+while True:
+  sync()
+end

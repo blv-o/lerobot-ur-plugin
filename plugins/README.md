@@ -38,9 +38,18 @@ Modo del follower (selector de la barra superior):
   - La primera vez: menú ☰ → **Settings** → **System** → **Remote Control** → **Enable**.
   - Se pierde con `docker compose stop`/`up` o al recrear el contenedor: volver a ponerlo.
 
+Leader real:
+- Modo **Local**.
+- Llevarlo a la posición inicial desde **Move**.
+- Freedrive, a elegir:
+  - Botón de freedrive del TP.
+  - Programa `Freedrive.urp`: nodo Script que carga `plugins/tp/leader_freedrive.script`. El `.urp` no se llama como el script. **Stop** sale de freedrive y el leader queda quieto.
+- Payload y TCP: se ponen desde el TP del leader.
+- El PC no envía ningún programa al leader.
+
 Red (robots reales):
-- Red dedicada para el PC y los robots.
-- IP fija del PC en la misma subred que los robots.
+- Red dedicada para el PC y los robots, con un switch.
+- IP fija del PC en la misma subred que las IP `real:` del YAML (las del YAML son ejemplos: poner las de tus robots).
 - En PolyScope del follower y del leader: restringir el acceso entrante a esa subred y desactivar los servicios que no se usen (dejar RTDE, puerto 30004).
 
 ## 3. Copiar el YAML
@@ -51,6 +60,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
 
 - Con los URSim no hay que cambiar nada (`profile: sim`).
 - Robots reales: `profile` (`real`, o `{leader: real, follower: sim}`) y sus IP `real:`.
+- Perfil mixto `profile: {leader: real, follower: sim}`: leader real y follower en URSim.
 - Velocidad máxima e interpolación se ajustan solo en el programa del TP (`plugins/tp/follower_control.script`).
 
 ## 4. Lanzar
@@ -73,7 +83,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
 - `--fps=30`: casa con `TARGET_PERIOD_S` (33 ms) del programa del TP, que llega a cada consigna en 5 vueltas de 8 ms (40 ms). Sin él, `lerobot-teleoperate` usa 60. En `lerobot-record` es `--dataset.fps` (por defecto 30).
 - Pregunta `yes/no` dos veces (primero el leader, luego el follower). Con `yes` comprueba la posición; si algo falla, lo dice y vuelve a preguntar.
 - Con `no`: «arranque cancelado por el operador» y sale sin mover nada.
-- La pregunta del leader pide un programa de freedrive en Play: solo con un UR real. En URSim, contestar `yes` y mover el leader desde **Move**.
+- La pregunta del leader pide freedrive activo (botón del TP o programa de freedrive en Play): solo con un UR real. En URSim, contestar `yes` y mover el leader desde **Move**.
 - Al grabar, las teclas de LeRobot (Esc, flechas) se captan en todo el escritorio: no pulsarlas en la pestaña noVNC de URSim ni en otra ventana.
 
 ## 5. Parar
@@ -99,7 +109,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
 - «primera consigna lejos» → leader y follower no estaban juntos en la posición inicial: llevarlos allí, **Stop** y **Play**, y relanzar.
 - «se perdió la conexión» (RTDE) → revisar cable y red; **Stop** y **Play** en el TP.
 - `safety_mode=…` o `robot_mode=…` → mirar el TP, desbloquear la parada, **Stop** y **Play**.
-- Error del leader (también al conectar) → programa de freedrive en Play y cable del leader.
+- Error del leader (también al conectar) → comprobar que el leader esté encendido y su cable de red.
 - «no se puede leer la posición» → comprobar la IP del YAML y que el robot esté encendido.
 - «fuera de tolerancia» → llevar ese robot a la posición inicial desde **Move** y contestar `yes`.
 - Tests `ursim` con «Failed to execute: play» → el follower está apagado o en Local (sección 2).
