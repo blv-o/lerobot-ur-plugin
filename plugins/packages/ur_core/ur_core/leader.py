@@ -27,7 +27,7 @@ from ur_core.startup import (
 log = logging.getLogger("ur_core.leader")
 
 # Toda causa de un error del leader está en su TP o en la red.
-READ_ACTION = "comprueba el programa de freedrive y el cable del leader"
+READ_ACTION = "comprueba que el leader esté encendido y su cable de red"
 
 OUTPUT_NAMES = ["actual_q", "timestamp"]
 OUTPUT_TYPES = ["VECTOR6D", "DOUBLE"]
@@ -68,7 +68,7 @@ class UrLeaderCore:
         pose = start_pose_text(self._config.start_pose_rad, self._config.start_tolerance_rad)
         return (
             f"Leader {self._leader.type} ({self._leader.ip}), desde el Teach Pendant:\n"
-            "  - Programa de freedrive cargado y en marcha (Play).\n"
+            "  - Freedrive activo (botón del TP o programa de freedrive en Play).\n"
             f"  - Robot en la posición inicial {pose} (base..wrist_3).\n"
             # Termina en salto de línea: con `| Tee-Object`, PowerShell no muestra una línea sin él.
             "¿Continuar? (yes/no):\n"
