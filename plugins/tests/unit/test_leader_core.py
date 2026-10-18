@@ -16,10 +16,10 @@ from fakes import START_Q_RAD, FakeClock, FakeRTDE, endless_packets, packet, pac
 from ur_core.config import ConfigError, FollowerConfig, LowCostLeaderConfig, TeleopConfig, UrLeaderConfig
 from ur_core.leader import LeaderReadError, UrLeaderCore
 
-LEADER = UrLeaderConfig(type="ur3e", ip="127.0.0.3", timeout_s=0.1)
+LEADER = UrLeaderConfig(ip="127.0.0.3", timeout_s=0.1)
 LEADER_CONFIG = TeleopConfig(
     leader=LEADER,
-    follower=FollowerConfig(type="ur3e", ip="127.0.0.2"),
+    follower=FollowerConfig(ip="127.0.0.2"),
     start_pose_rad=tuple(START_Q_RAD),
     start_tolerance_rad=math.radians(2),
 )

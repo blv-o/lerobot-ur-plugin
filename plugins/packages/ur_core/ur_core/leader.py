@@ -12,7 +12,7 @@ from collections.abc import Callable
 from rtde.rtde import RTDEException
 
 from ur_core.clock import now_ns
-from ur_core.config import UR_TYPES, ConfigError, TeleopConfig, UrLeaderConfig
+from ur_core.config import UR_LEADER_TYPE, ConfigError, TeleopConfig, UrLeaderConfig
 from ur_core.startup import (
     BUFFER_LIMIT,
     READ_HZ,
@@ -47,7 +47,7 @@ class UrLeaderCore:
         if not isinstance(config.leader, UrLeaderConfig):
             raise ConfigError(
                 "leader.type",
-                f"{config.leader.type!r} no es un UR: este leader solo lee modelos {list(UR_TYPES)}",
+                f"{config.leader.type!r} no es un UR: este leader solo lee type {UR_LEADER_TYPE!r}",
             )
         self._config = config
         self._leader = config.leader
@@ -67,7 +67,7 @@ class UrLeaderCore:
     def start_prompt(self) -> str:
         pose = start_pose_text(self._config.start_pose_rad, self._config.start_tolerance_rad)
         return (
-            f"Leader {self._leader.type} ({self._leader.ip}), desde el Teach Pendant:\n"
+            f"Leader UR ({self._leader.ip}), desde el Teach Pendant:\n"
             "  - Freedrive activo (botón del TP o programa de freedrive en Play).\n"
             f"  - Robot en la posición inicial {pose} (base..wrist_3).\n"
             # Termina en salto de línea: con `| Tee-Object`, PowerShell no muestra una línea sin él.

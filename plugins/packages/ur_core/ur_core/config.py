@@ -14,10 +14,11 @@ from typing import Any
 import yaml
 
 PROFILES = ("sim", "real")
-# Todos se controlan igual por RTDE (6 articulaciones, servoj): un modelo nuevo se añade aquí.
-UR_TYPES = ("ur3e", "ur5e", "ur7e", "ur10e", "ur12e", "ur15", "ur16e", "ur20", "ur30")
+# El modelo del UR no se configura: todos se controlan igual por RTDE (6 articulaciones, servoj).
+UR_LEADER_TYPE = "ur"
 # Réplicas de bajo coste con la cinemática del UR, leídas por un puerto serie; solo como leader.
 LOW_COST_LEADER_TYPES = ("feetech", "as5600")
+LEADER_TYPES = (UR_LEADER_TYPE, *LOW_COST_LEADER_TYPES)
 DIRECTIONS = ("normal", "invertido")
 # Cada robot puede arrancar a ± esta tolerancia de la posición inicial, así que entre sí pueden
 # estar al doble: más de 5° haría que la primera consigna pidiera un salto.
@@ -40,7 +41,7 @@ LOW_COST_LEADER_SCHEMA: dict[str, Any] = {
 SCHEMA: dict[str, Any] = {
     "leader": UR_LEADER_SCHEMA,
     # Sin ajustes del movimiento: viven solo en el programa del TP.
-    "follower": {"type": None, "ip": None},
+    "follower": {"ip": None},
     "start_pose_deg": None,
     "start_tolerance_deg": None,
 }
@@ -57,7 +58,6 @@ class ConfigError(ValueError):
 
 @dataclass(frozen=True)
 class UrLeaderConfig:
-    type: str
     ip: str
     timeout_s: float
 
@@ -73,7 +73,6 @@ class LowCostLeaderConfig:
 
 @dataclass(frozen=True)
 class FollowerConfig:
-    type: str
     ip: str
 
 
@@ -111,10 +110,9 @@ def _leader_schema(leader: Any) -> dict[str, Any]:
         raise ConfigError("leader.type", "un valor por perfil debe ser {sim: ..., real: ...} completo")
     if leader_type in LOW_COST_LEADER_TYPES:
         return LOW_COST_LEADER_SCHEMA
-    if leader_type in UR_TYPES:
+    if leader_type == UR_LEADER_TYPE:
         return UR_LEADER_SCHEMA
-    valid = list(UR_TYPES + LOW_COST_LEADER_TYPES)
-    raise ConfigError("leader.type", f"tipo {leader_type!r} no válido; tipos válidos: {valid}")
+    raise ConfigError("leader.type", f"tipo {leader_type!r} no válido; tipos válidos: {list(LEADER_TYPES)}")
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:
@@ -188,13 +186,8 @@ def _check_keys(user: dict[str, Any], schema: dict[str, Any], path: str) -> None
 
 
 def _validate(c: dict[str, Any]) -> None:
-    follower = c["follower"]
     _check_leader(c["leader"])
-    if follower["type"] not in UR_TYPES:
-        raise ConfigError(
-            "follower.type", f"tipo {follower['type']!r} no válido; tipos válidos: {list(UR_TYPES)}"
-        )
-    _check_text("follower.ip", follower["ip"])
+    _check_text("follower.ip", c["follower"]["ip"])
     _check_start_pose(c["start_pose_deg"])
     _check_start_tolerance(c["start_tolerance_deg"])
 
@@ -202,7 +195,7 @@ def _validate(c: dict[str, Any]) -> None:
 def _check_leader(leader: dict[str, Any]) -> None:
     # El tipo ya se validó en _leader_schema.
     _check_positive("leader.timeout_ms", leader["timeout_ms"])
-    if leader["type"] in UR_TYPES:
+    if leader["type"] == UR_LEADER_TYPE:
         _check_text("leader.ip", leader["ip"])
         return
     _check_text("leader.port", leader["port"])
@@ -254,8 +247,8 @@ def _check_start_pose(pose: Any) -> None:
 
 def _build_leader(leader: dict[str, Any]) -> UrLeaderConfig | LowCostLeaderConfig:
     timeout_s = leader["timeout_ms"] / 1000
-    if leader["type"] in UR_TYPES:
-        return UrLeaderConfig(type=leader["type"], ip=leader["ip"], timeout_s=timeout_s)
+    if leader["type"] == UR_LEADER_TYPE:
+        return UrLeaderConfig(ip=leader["ip"], timeout_s=timeout_s)
     return LowCostLeaderConfig(
         type=leader["type"],
         port=leader["port"],
@@ -268,7 +261,7 @@ def _build_leader(leader: dict[str, Any]) -> UrLeaderConfig | LowCostLeaderConfi
 def _build(c: dict[str, Any]) -> TeleopConfig:
     return TeleopConfig(
         leader=_build_leader(c["leader"]),
-        follower=FollowerConfig(type=c["follower"]["type"], ip=c["follower"]["ip"]),
+        follower=FollowerConfig(ip=c["follower"]["ip"]),
         start_pose_rad=tuple(math.radians(d) for d in c["start_pose_deg"]),
         start_tolerance_rad=math.radians(c["start_tolerance_deg"]),
     )

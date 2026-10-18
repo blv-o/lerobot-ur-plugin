@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 import yaml
 from ur_core import ConfigError, TeleopConfig, load_config
-from ur_core.config import LOW_COST_LEADER_TYPES, UR_TYPES, LowCostLeaderConfig, UrLeaderConfig
+from ur_core.config import LEADER_TYPES, LOW_COST_LEADER_TYPES, LowCostLeaderConfig, UrLeaderConfig
 
 LEADER_SIM_IP = "127.0.0.3"
 LEADER_REAL_IP = "192.168.1.11"
@@ -19,12 +19,11 @@ FOLLOWER_REAL_IP = "192.168.1.10"
 BASE: dict[str, Any] = {
     "profile": "sim",
     "leader": {
-        "type": "ur3e",
+        "type": "ur",
         "ip": {"sim": LEADER_SIM_IP, "real": LEADER_REAL_IP},
         "timeout_ms": 100,
     },
     "follower": {
-        "type": "ur3e",
         "ip": {"sim": FOLLOWER_SIM_IP, "real": FOLLOWER_REAL_IP},
     },
     "start_pose_deg": [0, -90, 90, -90, -90, 0],
@@ -37,7 +36,6 @@ LEAF_KEYS = [
     "leader.type",
     "leader.ip",
     "leader.timeout_ms",
-    "follower.type",
     "follower.ip",
     "start_pose_deg",
     "start_tolerance_deg",
@@ -127,16 +125,6 @@ def test_config_is_immutable(tmp_path: Path) -> None:
         config.leader = config.leader  # type: ignore[misc]
 
 
-@pytest.mark.parametrize("model", UR_TYPES)
-def test_every_ur_model_is_accepted(tmp_path: Path, model: str) -> None:
-    data = base()
-    data["leader"]["type"] = model
-    data["follower"]["type"] = model
-    config = load(tmp_path, data)
-    assert config.leader.type == model
-    assert config.follower.type == model
-
-
 def test_reference_template_loads() -> None:
     """La plantilla que se pasa a `--robot.config_path`/`--teleop.config_path`."""
     template = Path(__file__).parents[2] / "configs" / "ur_config.yaml"
@@ -158,24 +146,15 @@ def test_every_key_is_required(tmp_path: Path, dotted: str) -> None:
     assert exc.value.field == dotted
 
 
-def test_unknown_leader_type_lists_valid_types(tmp_path: Path) -> None:
+@pytest.mark.parametrize("value", ["ur99", "ur3e", "UR"])
+def test_unknown_leader_type_lists_valid_types(tmp_path: Path, value: str) -> None:
+    """El modelo del UR ya no se configura: `ur3e` y compañía son tipos desconocidos."""
     data = base()
-    data["leader"]["type"] = "ur99"
+    data["leader"]["type"] = value
     with pytest.raises(ConfigError) as exc:
         load(tmp_path, data)
     assert exc.value.field == "leader.type"
-    assert all(t in exc.value.reason for t in UR_TYPES + LOW_COST_LEADER_TYPES)
-
-
-@pytest.mark.parametrize("value", ["ur99", "feetech", "as5600"])
-def test_follower_type_must_be_ur(tmp_path: Path, value: str) -> None:
-    """El follower siempre es un UR: un tipo low-cost solo vale como leader."""
-    data = base()
-    data["follower"]["type"] = value
-    with pytest.raises(ConfigError) as exc:
-        load(tmp_path, data)
-    assert exc.value.field == "follower.type"
-    assert all(model in exc.value.reason for model in UR_TYPES)
+    assert all(t in exc.value.reason for t in LEADER_TYPES)
 
 
 def test_ur_leader_gives_ur_leader_config(tmp_path: Path) -> None:
@@ -259,6 +238,7 @@ REJECTED = [
     case("unknown-leader.mapping", "leader.mapping", {"direction": ["normal"] * 6}),
     case("unknown-leader.hz", "leader.hz", 100),
     case("unknown-leader.rtde_hz", "leader.rtde_hz", 500),  # el leader UR se lee al ritmo fijo del código
+    case("unknown-follower.type", "follower.type", "ur"),  # el follower es siempre un UR
     case("unknown-follower.servo", "follower.servo", {"hz": 125}),
     case("unknown-follower.watchdog", "follower.watchdog", {"hz": 125}),
     case("start_pose-5_joints", "start_pose_deg", [0, -90, 90, -90, -90]),
@@ -285,7 +265,7 @@ REJECTED = [
     case("follower_ip-number", "follower.ip", 1234),
     # Un YAML mal formado da siempre ConfigError con el campo, nunca TypeError/KeyError.
     case("shape-leader_none", "leader", None),
-    case("shape-type_sim_only", "leader.type", {"sim": "ur3e"}),
+    case("shape-type_sim_only", "leader.type", {"sim": "ur"}),
     case("shape-ip_extra_profile", "follower.ip", {"sim": "a", "real": "b", "extra": "c"}),
 ]
 

@@ -97,7 +97,7 @@ class UrFollowerCore:
         follower = self._config.follower
         pose = start_pose_text(self._config.start_pose_rad, self._config.start_tolerance_rad)
         return (
-            f"Follower {follower.type} ({follower.ip}), desde el Teach Pendant:\n"
+            f"Follower UR ({follower.ip}), desde el Teach Pendant:\n"
             "  - Programa del follower cargado y en marcha (Play).\n"
             f"  - Robot en la posición inicial {pose} (base..wrist_3).\n"
             # Termina en salto de línea: con `| Tee-Object`, PowerShell no muestra una línea sin él.

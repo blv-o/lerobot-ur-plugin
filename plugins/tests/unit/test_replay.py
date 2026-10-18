@@ -21,10 +21,10 @@ from ur_core.leader import LeaderReadError, UrLeaderCore
 TRACES = Path(__file__).parents[1] / "traces"
 HZ = 125
 SEND_EVERY = 4  # LeRobot a 30 fps: una consigna cada ~4 paquetes
-LEADER = UrLeaderConfig(type="ur3e", ip="127.0.0.3", timeout_s=0.1)
+LEADER = UrLeaderConfig(ip="127.0.0.3", timeout_s=0.1)
 CONFIG = TeleopConfig(
     leader=LEADER,
-    follower=FollowerConfig(type="ur3e", ip="127.0.0.2"),
+    follower=FollowerConfig(ip="127.0.0.2"),
     start_pose_rad=(0.0,) * 6,
     start_tolerance_rad=math.radians(2),
 )
