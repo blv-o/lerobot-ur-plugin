@@ -121,6 +121,9 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
   - Mover el leader despacio y lejos de singularidades.
   - Si se aparta, limitan los planos de seguridad (sección 2).
 - Al grabar, las teclas de LeRobot (Esc, flechas) se captan en todo el escritorio: no pulsarlas en la pestaña noVNC de URSim ni en otra ventana.
+  - **→**: acaba antes el episodio (o el reset) y pasa al siguiente.
+  - **←**: descarta el episodio en curso y lo vuelve a grabar.
+  - **Esc**: para la grabación y guarda lo grabado.
 
 ## 5. Parar
 
