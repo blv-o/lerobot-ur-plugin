@@ -57,9 +57,13 @@ Follower real:
   - Límites de posición y de velocidad de articulación.
   - Límites de fuerza, potencia y velocidad del TCP.
   - Planos de seguridad para la mesa y las paredes.
-  - **Modo reducido** (o límites bajos) en las primeras pruebas.
+  - Primeras pruebas: bajar los límites del modo Normal. En PolyScope 5 el **modo reducido** solo se activa con un plano disparador o una entrada de seguridad.
+  - Si el límite de velocidad de articulación queda por debajo de 60 °/s, el follower puede retrasarse o dar parada de protección (sin comprobar). En la primera prueba, mirar qué pasa.
   - Cambiar la contraseña de seguridad; la guarda quien es responsable.
-- **E-stop** al alcance del operador durante toda la sesión.
+- Primera sesión con el follower real:
+  - Nadie dentro del alcance del follower.
+  - Una segunda persona junto al follower con su E-stop, o el follower a la vista y al alcance de quien mueve el leader.
+  - Probar `lerobot-teleoperate` antes de `lerobot-record`.
 - Slider de velocidad del TP al 100 % para teleoperar.
 
 Red (robots reales):
@@ -87,7 +91,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
    ```
 3. Lanzar, guardando el log de la sesión:
    ```
-    lerobot-teleoperate --robot.type=ur_follower --robot.config_path="..\project\outputs\ur_config.yaml"  
+    lerobot-teleoperate --robot.type=ur_follower --robot.config_path="..\project\outputs\ur_config.yaml" `
     --teleop.type=ur_leader --teleop.config_path="..\project\outputs\ur_config.yaml" --fps=30
    ```
    Añadir `2>&1 | Tee-Object ur_session.log` para guardar el log
@@ -103,6 +107,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
      --dataset.push_to_hub=false --play_sounds=false
    ```
    - `--dataset.root` debe ser una carpeta nueva.
+  - Se crea antes de conectar los robots. Si el arranque se cancela con `no` o falla, la carpeta queda y relanzar con el mismo `root` da error: borrarla o cambiar el nombre.
    - `repo_id` es solo una etiqueta si no se sube al Hub.
    - Cámaras: se añaden con `--robot.cameras=...` (formato en la documentación de LeRobot). Sin cámaras, el dataset solo guarda las articulaciones en rad.
    - Después, comprobar `meta/info.json`: `observation.state` y `action` con 6 valores (`base.pos` … `wrist_3.pos`).
@@ -114,7 +119,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
 - Con el slider de velocidad del TP por debajo del 100 %, el follower va más lento y se retrasa. LeRobot no avisa ni para.
 - El programa limita cada articulación a 60 °/s. Si el leader gira más rápido (p. ej. la muñeca cerca de una singularidad), esa articulación se recorta y el follower se aparta del camino del leader hasta alcanzarlo.
   - Mover el leader despacio y lejos de singularidades.
-  - Si se aparta, protegen los planos de seguridad (sección 2).
+  - Si se aparta, limitan los planos de seguridad (sección 2).
 - Al grabar, las teclas de LeRobot (Esc, flechas) se captan en todo el escritorio: no pulsarlas en la pestaña noVNC de URSim ni en otra ventana.
 
 ## 5. Parar
