@@ -48,6 +48,20 @@ Leader real:
 - Payload y TCP: se ponen desde el TP del leader.
 - El PC no envía ningún programa al leader.
 
+Follower real:
+- Encenderlo y soltar frenos en el TP (**ON** → **START**). Modo **Local**.
+- Llevarlo a la posición inicial desde **Move**.
+- Script y `follower_tp.urp`: ver el punto 3 («Robot real»).
+- Payload y TCP correctos, desde el TP.
+- Seguridad (**Instalación** → **Seguridad**), antes de la primera sesión:
+  - Límites de posición y de velocidad de articulación.
+  - Límites de fuerza, potencia y velocidad del TCP.
+  - Planos de seguridad para la mesa y las paredes.
+  - **Modo reducido** (o límites bajos) en las primeras pruebas.
+  - Cambiar la contraseña de seguridad; la guarda quien es responsable.
+- **E-stop** al alcance del operador durante toda la sesión.
+- Slider de velocidad del TP al 100 % para teleoperar.
+
 Red (robots reales):
 - Red dedicada para el PC y los robots, con un switch.
 - IP fija del PC en la misma subred que las IP `real:` del YAML (las del YAML son ejemplos: poner las de tus robots).
@@ -80,10 +94,27 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
    En Linux: `... 2>&1 | tee ur_session.log`.
 4. Para grabar, `lerobot-record` con los mismos `--robot.*` y `--teleop.*`, `--dataset.fps=30` y `--play_sounds=false` (la voz bloquea al pulsar Ctrl+C y retrasa la parada).
 
+   ```powershell
+   lerobot-record --robot.type=ur_follower --robot.config_path="..\project\outputs\ur_config.yaml" `
+     --teleop.type=ur_leader --teleop.config_path="..\project\outputs\ur_config.yaml" `
+     --dataset.repo_id=local/ur_prueba --dataset.single_task="describir la tarea" `
+     --dataset.root="..\project\datasets\ur_prueba" --dataset.num_episodes=2 `
+     --dataset.episode_time_s=20 --dataset.reset_time_s=10 --dataset.fps=30 `
+     --dataset.push_to_hub=false --play_sounds=false
+   ```
+   - `--dataset.root` debe ser una carpeta nueva.
+   - `repo_id` es solo una etiqueta si no se sube al Hub.
+   - Cámaras: se añaden con `--robot.cameras=...` (formato en la documentación de LeRobot). Sin cámaras, el dataset solo guarda las articulaciones en rad.
+   - Después, comprobar `meta/info.json`: `observation.state` y `action` con 6 valores (`base.pos` … `wrist_3.pos`).
+
 - `--fps=30`: casa con `TARGET_PERIOD_S` (33 ms) del programa del TP, que llega a cada consigna en 5 vueltas de 8 ms (40 ms). Sin él, `lerobot-teleoperate` usa 60. En `lerobot-record` es `--dataset.fps` (por defecto 30).
 - Pregunta `yes/no` dos veces (primero el leader, luego el follower). Con `yes` comprueba la posición; si algo falla, lo dice y vuelve a preguntar.
 - Con `no`: «arranque cancelado por el operador» y sale sin mover nada.
 - La pregunta del leader pide freedrive activo (botón del TP o programa de freedrive en Play): solo con un UR real. En URSim, contestar `yes` y mover el leader desde **Move**.
+- Con el slider de velocidad del TP por debajo del 100 %, el follower va más lento y se retrasa. LeRobot no avisa ni para.
+- El programa limita cada articulación a 60 °/s. Si el leader gira más rápido (p. ej. la muñeca cerca de una singularidad), esa articulación se recorta y el follower se aparta del camino del leader hasta alcanzarlo.
+  - Mover el leader despacio y lejos de singularidades.
+  - Si se aparta, protegen los planos de seguridad (sección 2).
 - Al grabar, las teclas de LeRobot (Esc, flechas) se captan en todo el escritorio: no pulsarlas en la pestaña noVNC de URSim ni en otra ventana.
 
 ## 5. Parar
@@ -114,6 +145,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
 - «fuera de tolerancia» → llevar ese robot a la posición inicial desde **Move** y contestar `yes`.
 - Tests `ursim` con «Failed to execute: play» → el follower está apagado o en Local (sección 2).
 - `lerobot-calibrate`: no hay nada que calibrar; contestar `no`.
+- Con `| Tee-Object`, Ctrl+C también corta el `Tee-Object`: las últimas líneas (cierre) pueden no quedar en el log. Comprobar en el TP que el programa paró.
 - Cerrar la terminal depende de la terminal:
   - Warp manda una interrupción, como Ctrl+C: parada limpia.
   - La ventana clásica de PowerShell aborta el proceso sin parada: el robot queda quieto en Play.
