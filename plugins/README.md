@@ -107,7 +107,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
      --dataset.push_to_hub=false --play_sounds=false
    ```
    - `--dataset.root` debe ser una carpeta nueva.
-  - Se crea antes de conectar los robots. Si el arranque se cancela con `no` o falla, la carpeta queda y relanzar con el mismo `root` da error: borrarla o cambiar el nombre.
+   - Se crea antes de conectar los robots. Si el arranque se cancela con `no` o falla, la carpeta queda y relanzar con el mismo `root` da error: borrarla o cambiar el nombre.
    - `repo_id` es solo una etiqueta si no se sube al Hub.
    - Cámaras: se añaden con `--robot.cameras=...` (formato en la documentación de LeRobot). Sin cámaras, el dataset solo guarda las articulaciones en rad.
    - Después, comprobar `meta/info.json`: `observation.state` y `action` con 6 valores (`base.pos` … `wrist_3.pos`).
