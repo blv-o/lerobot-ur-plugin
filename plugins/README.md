@@ -1,24 +1,23 @@
-# Guía de uso: teleoperación UR → UR
+# Guía de uso: Plug-in LeRobot → UR
 
-Un UR leader (se mueve a mano) y un UR follower (lo sigue), con `lerobot-teleoperate` o `lerobot-record`.
-Aquí con los dos URSim de `plugins/ursim/`; con robots reales cambian las IP y el perfil del YAML.
+Mover un UR follower , con `lerobot-teleoperate` o `lerobot-record`,
+con dos URSim de `plugins/ursim/` o con robots reales cambian las IP y el perfil del YAML.
 
-## 1. Arrancar los URSim
+## 1. URSim
 
 Follower en `127.0.0.2` y leader en `127.0.0.3` (URSim 5.25.2), con noVNC en el 6080 de cada IP.
 
 ```
-docker compose -f plugins/ursim/docker-compose.yml up -d     # arrancar (≈1 min hasta que PolyScope responde)
+docker compose -f plugins/ursim/docker-compose.yml up -d     # arrancar
 pytest plugins/tests/ursim/test_ursim_ports.py -m ursim      # comprobar que los dos responden por RTDE
 docker compose -f plugins/ursim/docker-compose.yml stop      # parar sin borrar el estado
 ```
 
-Con Docker Desktop los puertos aceptan conexiones antes de que URSim arranque: por eso la comprobación
-pide la versión del controlador por RTDE.
+Con Docker Desktop los puertos aceptan conexiones antes de que URSim arranque: por eso la comprobación pide la versión del controlador por RTDE.
 
-URSim del follower ejecuta el `plugins/tp/follower_control.script` del checkout principal (el compose lo monta de ahí, ver `plugins/ursim/docker-compose.yml`): es el script de la rama activa en ese checkout. El `load` del Dashboard (tests) relee el archivo. El `.urp` guarda además una copia; sin comprobar si el Play del TP la usa (ver sección 2).
+URSim del follower ejecuta el `plugins/tp/follower_control.script` del checkout principal (el compose lo monta de ahí, ver `plugins/ursim/docker-compose.yml`).
 
-## 2. Preparar los robots (a mano, en PolyScope)
+## 1.1 Preparar los robots (a mano, en PolyScope)
 
 El código nunca enciende, suelta frenos ni cambia de modo. Abrir el PolyScope de cada uno:
 follower `http://127.0.0.2:6080/vnc.html`, leader `http://127.0.0.3:6080/vnc.html`.
@@ -26,31 +25,21 @@ follower `http://127.0.0.2:6080/vnc.html`, leader `http://127.0.0.3:6080/vnc.htm
 1. Los dos: botón rojo abajo a la izquierda → **ON** → **START** → **Exit**.
 2. Los dos: pestaña **Move** → posición inicial del YAML (`[0, -90, 90, -90, -90, 0]` ± 2°).
 3. Solo el follower: abrir `follower_tp.urp`.
-   - La primera vez se crea: programa nuevo con un nodo Script que carga `follower_control.script`
-     (el compose ya lo monta en la carpeta de programas desde `plugins/tp/`).
+   - La primera vez se crea: programa nuevo con un nodo Script que carga `follower_control.script`.
    - No llamarlo `follower_control.urp`: al guardar `X.urp`, PolyScope genera `X.script` y pisa el script.
    - Tras cambiar `follower_control.script`, volver a guardar el `.urp` en el TP: el `.urp` guarda una copia del script.
    - Robot real: copiar `follower_control.script` al robot con un USB (o por red a la carpeta de programas) y crear el `.urp` igual.
 
-Modo del follower (selector de la barra superior):
-- **Local** para teleoperar.
-- **Remote** solo para los tests `ursim` (en Remote, el Play del TP no funciona, dan Play por el Dashboard).
-  - La primera vez: menú ☰ → **Settings** → **System** → **Remote Control** → **Enable**.
-  - Se pierde con `docker compose stop`/`up` o al recrear el contenedor: volver a ponerlo.
-
 Leader real:
-- Encenderlo y soltar frenos en el TP (**ON** → **START**). Modo **Local**.
-- Llevarlo a la posición inicial desde **Move**.
-- Freedrive, a elegir:
+4. Freedrive, a elegir:
   - Botón de freedrive del TP, mantenido pulsado mientras se mueve el brazo.
   - Programa `Freedrive.urp`: nodo Script que carga `plugins/tp/leader_freedrive.script`. El `.urp` no se llama como el script. **Stop** sale de freedrive y el leader queda quieto.
     Copiar el script al robot con un USB (o por red a la carpeta de programas).
-- Payload y TCP: se ponen desde el TP del leader.
-- El PC no envía ningún programa al leader.
+6. Payload y TCP: se ponen desde el TP del leader.
 
 Follower real:
-- Encenderlo y soltar frenos en el TP (**ON** → **START**). Modo **Local**.
-- Llevarlo a la posición inicial desde **Move**.
+7. Encenderlo y soltar frenos en el TP (**ON** → **START**). Modo **Local**.
+8. Llevarlo a la posición inicial desde **Move**.
 - Script y `follower_tp.urp`: ver el punto 3 («Robot real»).
 - Payload y TCP correctos, desde el TP.
 - Seguridad (**Instalación** → **Seguridad**), antes de la primera sesión:
@@ -58,17 +47,10 @@ Follower real:
   - Límites de fuerza, potencia y velocidad del TCP.
   - Planos de seguridad para la mesa y las paredes.
   - Primeras pruebas: bajar los límites del modo Normal. En PolyScope 5 el **modo reducido** solo se activa con un plano disparador o una entrada de seguridad.
-  - Si el límite de velocidad de articulación queda por debajo de 60 °/s, el follower puede retrasarse o dar parada de protección (sin comprobar). En la primera prueba, mirar qué pasa.
-  - Cambiar la contraseña de seguridad; la guarda quien es responsable.
-- Primera sesión con el follower real:
-  - Nadie dentro del alcance del follower.
-  - Una segunda persona junto al follower con su E-stop, o el follower a la vista y al alcance de quien mueve el leader.
-  - Probar `lerobot-teleoperate` antes de `lerobot-record`.
-- Slider de velocidad del TP al 100 % para teleoperar.
 
 Red (robots reales):
 - Red dedicada para el PC y los robots, con un switch.
-- IP fija del PC en la misma subred que las IP `real:` del YAML (las del YAML son ejemplos: poner las de tus robots).
+- IP fija del PC en la misma subred que las IP `real:` del YAML.
 - En PolyScope del follower y del leader: restringir el acceso entrante a esa subred y desactivar los servicios que no se usen (dejar RTDE, puerto 30004).
 
 ## 3. Copiar el YAML
@@ -77,8 +59,8 @@ Red (robots reales):
 Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
 ```
 
-- Con los URSim no hay que cambiar nada (`profile: sim`).
-- Robots reales: `profile` (`real`, o `{leader: real, follower: sim}` para leader real y follower en URSim) y sus IP `real:`.
+- URSim: `profile: sim`.
+- Robots reales: `profile: real`, o `{leader: real, follower: sim}` y sus IP .
 - Velocidad máxima e interpolación se ajustan solo en el programa del TP (`plugins/tp/follower_control.script`).
 
 ## 4. Lanzar
@@ -89,7 +71,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
    conda activate lerobot
    cd lerobot
    ```
-3. Lanzar, guardando el log de la sesión:
+3. Lanzar teleoperación:
    ```
     lerobot-teleoperate --robot.type=ur_follower --robot.config_path="..\project\outputs\ur_config.yaml" `
     --teleop.type=ur_leader --teleop.config_path="..\project\outputs\ur_config.yaml" --fps=30
@@ -109,17 +91,17 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
    - `--dataset.root` debe ser una carpeta nueva.
    - Se crea antes de conectar los robots. Si el arranque se cancela con `no` o falla, la carpeta queda y relanzar con el mismo `root` da error: borrarla o cambiar el nombre.
    - `repo_id` es solo una etiqueta si no se sube al Hub.
-   - Cámaras: se añaden con `--robot.cameras=...` (formato en la documentación de LeRobot). Sin cámaras, el dataset solo guarda las articulaciones en rad.
+   - Cámaras: se añaden con `--robot.cameras=...`-
    - Después, comprobar `meta/info.json`: `observation.state` y `action` con 6 valores (`base.pos` … `wrist_3.pos`).
 
 - `--fps=30`: casa con `TARGET_PERIOD_S` (33 ms) del programa del TP, que llega a cada consigna en 5 vueltas de 8 ms (40 ms). Sin él, `lerobot-teleoperate` usa 60. En `lerobot-record` es `--dataset.fps` (por defecto 30).
+
 - Pregunta `yes/no` dos veces (primero el leader, luego el follower). Con `yes` comprueba la posición; si algo falla, lo dice y vuelve a preguntar.
 - Con `no`: «arranque cancelado por el operador» y sale sin mover nada.
 - La pregunta del leader pide freedrive activo (botón del TP o programa de freedrive en Play): solo con un UR real. En URSim, contestar `yes` y mover el leader desde **Move**.
 - Con el slider de velocidad del TP por debajo del 100 %, el follower va más lento y se retrasa. LeRobot no avisa ni para.
 - El programa limita cada articulación a 60 °/s. Si el leader gira más rápido (p. ej. la muñeca cerca de una singularidad), esa articulación se recorta y el follower se aparta del camino del leader hasta alcanzarlo.
-  - Mover el leader despacio y lejos de singularidades.
-  - Si se aparta, limitan los planos de seguridad (sección 2).
+
 - Al grabar, las teclas de LeRobot (Esc, flechas) se captan en todo el escritorio: no pulsarlas en la pestaña noVNC de URSim ni en otra ventana.
   - **→**: acaba antes el episodio (o el reset) y pasa al siguiente.
   - **←**: descarta el episodio en curso y lo vuelve a grabar.
