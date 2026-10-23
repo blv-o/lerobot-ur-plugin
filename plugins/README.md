@@ -52,8 +52,9 @@ Red (robots reales):
 - Red aislada: solo el PC y los robots, con un switch y sin conexión a otras redes. RTDE no tiene contraseña: esta red es la protección.
 - IP fija del PC en la misma subred que las IP `real:` del YAML. IP de cada robot en PolyScope (**Ajustes** → **Sistema** → **Red**).
 - En PolyScope del follower y del leader (**Ajustes** → **Seguridad**):
-  - **Servicios**: habilitar RTDE (puerto 30004). En el robot real puede venir deshabilitado (en URSim no).
-  - Quitar la restricción de acceso entrante: con ella activa, RTDE no conectaba en el robot real.
+  - **Servicios**: habilitar RTDE (puerto 30004) y deshabilitar el resto (Dashboard, 30001–30003): el plugin solo usa RTDE. En el robot real RTDE puede venir deshabilitado (en URSim no).
+  - **General**: quitar la restricción de acceso entrante: con ella activa, RTDE puede no conectar.
+  - No confundir con **Instalación** → **Seguridad** (límites del robot).
 
 ## 3. Copiar el YAML
 
@@ -133,9 +134,9 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
 - «se perdió la conexión» (RTDE) → revisar cable y red; **Stop** y **Play** en el TP.
 - `safety_mode=…` o `robot_mode=…` → mirar el TP, desbloquear la parada, **Stop** y **Play**.
 - Error del leader (también al conectar) → comprobar que el leader esté encendido y su cable de red.
-- «no se puede leer la posición» o «no se puede conectar por RTDE» → comprobar la IP del YAML, que el robot esté encendido y, en un robot real, RTDE habilitado y sin restricción de acceso entrante (punto 1.1, «Red»).
+- «no se puede leer la posición», «no se puede conectar por RTDE» o «no se puede leer el leader por RTDE» → comprobar la IP del YAML, que el robot esté encendido y, en un robot real, RTDE habilitado y sin restricción de acceso entrante (punto 1.1, «Red»).
 - «fuera de tolerancia» → llevar ese robot a la posición inicial desde **Move** y contestar `yes`.
-- Tests `ursim` con «Failed to execute: play» → el follower está apagado o en Local (sección 2).
+- Tests `ursim` con «Failed to execute: play» → el follower está apagado o en Local (punto 1.1).
 - `lerobot-calibrate`: no hay nada que calibrar; contestar `no`.
 - Con `| Tee-Object`, Ctrl+C también corta el `Tee-Object`: las últimas líneas (cierre) pueden no quedar en el log. Comprobar en el TP que el programa paró.
 - Cerrar la terminal depende de la terminal:
