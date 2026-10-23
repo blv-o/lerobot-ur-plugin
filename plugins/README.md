@@ -49,9 +49,11 @@ Follower real:
   - Primeras pruebas: bajar los límites del modo Normal. En PolyScope 5 el **modo reducido** solo se activa con un plano disparador o una entrada de seguridad.
 
 Red (robots reales):
-- Red dedicada para el PC y los robots, con un switch.
-- IP fija del PC en la misma subred que las IP `real:` del YAML.
-- En PolyScope del follower y del leader: restringir el acceso entrante a esa subred y desactivar los servicios que no se usen (dejar RTDE, puerto 30004).
+- Red aislada: solo el PC y los robots, con un switch y sin conexión a otras redes. RTDE no tiene contraseña: esta red es la protección.
+- IP fija del PC en la misma subred que las IP `real:` del YAML. IP de cada robot en PolyScope (**Ajustes** → **Sistema** → **Red**).
+- En PolyScope del follower y del leader (**Ajustes** → **Seguridad**):
+  - **Servicios**: habilitar RTDE (puerto 30004). En el robot real puede venir deshabilitado (en URSim no).
+  - Quitar la restricción de acceso entrante: con ella activa, RTDE no conectaba en el robot real.
 
 ## 3. Copiar el YAML
 
@@ -131,7 +133,7 @@ Copy-Item lerobot\plugins\configs\ur_config.yaml project\outputs\ur_config.yaml
 - «se perdió la conexión» (RTDE) → revisar cable y red; **Stop** y **Play** en el TP.
 - `safety_mode=…` o `robot_mode=…` → mirar el TP, desbloquear la parada, **Stop** y **Play**.
 - Error del leader (también al conectar) → comprobar que el leader esté encendido y su cable de red.
-- «no se puede leer la posición» → comprobar la IP del YAML y que el robot esté encendido.
+- «no se puede leer la posición» o «no se puede conectar por RTDE» → comprobar la IP del YAML, que el robot esté encendido y, en un robot real, RTDE habilitado y sin restricción de acceso entrante (punto 1.1, «Red»).
 - «fuera de tolerancia» → llevar ese robot a la posición inicial desde **Move** y contestar `yes`.
 - Tests `ursim` con «Failed to execute: play» → el follower está apagado o en Local (sección 2).
 - `lerobot-calibrate`: no hay nada que calibrar; contestar `no`.
