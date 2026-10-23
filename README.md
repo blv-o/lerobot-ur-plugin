@@ -32,7 +32,7 @@ conda create -y -n lerobot python=3.12
 conda activate lerobot
 conda install "ffmpeg=8.*" -c conda-forge
 
-git clone https://github.com/blv-o/lerobot.git
+git clone https://github.com/blv-o/lerobot-ur-plugin.git lerobot
 cd lerobot
 git switch lerobot/ur-plugin
 python -m pip install -e ".[core_scripts,training,feetech]"
